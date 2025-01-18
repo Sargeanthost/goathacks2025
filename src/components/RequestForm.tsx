@@ -61,12 +61,18 @@ const PickupForm = () => {
         display: "flex",
         flexDirection: "column",
         gap: 2,
-        maxWidth: 400,
         margin: "0 auto",
         padding: 2,
         backgroundColor: "#f9f9f9",
         borderRadius: 2,
         boxShadow: 3,
+        minWidth: {
+          xs: "20rem", // Smaller screens
+          sm: "30rem", // Medium screens
+          md: "35rem", // Larger screens
+        },
+        width: "80%", // Allow it to shrink and grow with the container
+        maxWidth: "100vw", // Prevent overflow
       }}
     >
       <Typography variant="h5">Let's find a whip 😎</Typography>
