@@ -52,17 +52,45 @@ function App() {
   }, []);
 
   if (!session) {
-    return <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />;
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          backgroundColor: "#f5f5f5", // Behind login box
+          padding: "20px",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "350px", // Limit width for smaller screens
+            width: "100%", // Full width on mobile
+            padding: "20px",
+            borderRadius: "8px",
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+            backgroundColor: "#ffffff", // Log
+          }}
+        >
+          <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />
+        </div>
+      </div>
+    );
   } else {
+    // Map
     return (
       <div>
         <Box className="map-box">
           <div
             className="map-container"
             ref={mapContainerRef}
-            style={{ visibility: !loading ? "visible" : "hidden" }}
+            style={{
+              visibility: !loading ? "visible" : "hidden",
+              height: "100vh",
+            }}
           />
-
           {loading && <Loading />}
         </Box>
       </div>
