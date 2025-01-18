@@ -10,6 +10,7 @@ import { useSupabase } from "./hooks/useSupabase";
 import { useSession } from "./hooks/useSession";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
+import PullUpDrawer from "./components/PullUpDrawer";
 
 function App() {
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -148,6 +149,7 @@ function App() {
           />
           {loading && <Loading />}
         </Box>
+        <PullUpDrawer />
       </div>
     );
   }
