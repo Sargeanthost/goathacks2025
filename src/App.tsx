@@ -52,34 +52,20 @@ function App() {
   }, []);
 
   if (!session) {
-    return (
-      <Box
-        sx={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />
-      </Box>
-    );
+    return <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />;
   } else {
     return (
-      <Box sx={{ position: "relative", width: "100%", height: "100vh" }}>
-        <div
-          id="map-container"
-          ref={mapContainerRef}
-          style={{
-            width: "100%",
-            height: "100%",
-            visibility: !loading ? "visible" : "hidden",
-          }}
-        />
+      <div>
+        <Box className="map-box">
+          <div
+            className="map-container"
+            ref={mapContainerRef}
+            style={{ visibility: !loading ? "visible" : "hidden" }}
+          />
 
-        {loading && <Loading />}
-      </Box>
+          {loading && <Loading />}
+        </Box>
+      </div>
     );
   }
 }
