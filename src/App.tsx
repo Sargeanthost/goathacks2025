@@ -66,7 +66,7 @@ function App() {
       });
     };
 
-    // Check if geolocation is supported
+    // supported?
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(handleSuccess, handleError);
     } else {
