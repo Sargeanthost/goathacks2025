@@ -27,8 +27,38 @@ function App() {
 
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current!,
+        style: "mapbox://styles/mapbox/streets-v12",
         center: [longitude, latitude],
         zoom: 10.12,
+      });
+
+      // geolocation control
+      const geolocateControl = new mapboxgl.GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true,
+        },
+        trackUserLocation: true,
+        showUserHeading: true,
+      });
+      mapRef.current.addControl(geolocateControl);
+      mapRef.current.addControl(new mapboxgl.NavigationControl());
+
+      // get user location
+      mapRef.current.on("load", () => {
+        setLoading(false);
+        geolocateControl.trigger();
+      });
+    };
+
+    // error
+    const handleError = (error: GeolocationPositionError) => {
+      console.error("Geolocation error:", error.message);
+      setLoading(false);
+      mapRef.current = new mapboxgl.Map({
+        container: mapContainerRef.current!,
+        style: "mapbox://styles/mapbox/streets-v12",
+        center: [-74.006, 40.7128], // New York City coordinates
+        zoom: 10,
       });
 
       mapRef.current.on("load", () => {
@@ -36,14 +66,18 @@ function App() {
       });
     };
 
-    const handleError = (error: GeolocationPositionError) => {
-      console.error("Geolocation error:", error.message);
-    };
-
+    // Check if geolocation is supported
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(handleSuccess, handleError);
     } else {
       console.error("Geolocation is not supported by this browser.");
+      handleError({
+        code: 0,
+        message: "Geolocation not supported.",
+        PERMISSION_DENIED: 1,
+        POSITION_UNAVAILABLE: 2,
+        TIMEOUT: 3,
+      } as GeolocationPositionError);
     }
 
     return () => {
