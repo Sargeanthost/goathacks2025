@@ -1,6 +1,10 @@
 import { useRef, useEffect, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./App.css";
@@ -10,6 +14,7 @@ import { useSession } from "./hooks/useSession";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import PullUpDrawer from "./components/PullUpDrawer";
+import RidesModal from "./components/RidesModal";
 
 function App() {
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -17,6 +22,24 @@ function App() {
   const [loading, setLoading] = useState(true);
   const { supabase } = useSupabase();
   const { session } = useSession();
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const isMenuOpen = Boolean(anchorEl);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleRidesClicked = () => {
+    handleMenuClose();
+    setIsRidesOpen(true);
+  };
+
+  const [isRidesOpen, setIsRidesOpen] = useState(false);
 
   useEffect(() => {
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_PUBLIC_KEY;
@@ -33,32 +56,27 @@ function App() {
         zoom: 10.12,
       });
 
-      // geolocation control
       const geolocateControl = new mapboxgl.GeolocateControl({
-        positionOptions: {
-          enableHighAccuracy: true,
-        },
+        positionOptions: { enableHighAccuracy: true },
         trackUserLocation: true,
         showUserHeading: true,
       });
       mapRef.current.addControl(geolocateControl);
       mapRef.current.addControl(new mapboxgl.NavigationControl());
 
-      // get user location
       mapRef.current.on("load", () => {
         setLoading(false);
         geolocateControl.trigger();
       });
     };
 
-    // error
     const handleError = (error: GeolocationPositionError) => {
       console.error("Geolocation error:", error.message);
       setLoading(false);
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current!,
         style: "mapbox://styles/mapbox/streets-v12",
-        center: [-74.006, 40.7128], // New York City coordinates
+        center: [-74.006, 40.7128],
         zoom: 10,
       });
 
@@ -67,7 +85,6 @@ function App() {
       });
     };
 
-    // supported?
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(handleSuccess, handleError);
     } else {
@@ -91,22 +108,21 @@ function App() {
       <div
         style={{
           display: "flex",
-          flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
           height: "100vh",
-          backgroundColor: "#f5f5f5", // Behind login box
+          backgroundColor: "#f5f5f5",
           padding: "20px",
         }}
       >
         <div
           style={{
-            maxWidth: "400px", // Limit width for smaller screens
-            width: "90%", // Full width on mobile
+            maxWidth: "400px",
+            width: "90%",
             padding: "20px",
             borderRadius: "8px",
             boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
-            backgroundColor: "#ffffff", // Login box color
+            backgroundColor: "#ffffff",
           }}
         >
           <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />
@@ -114,7 +130,6 @@ function App() {
       </div>
     );
   } else {
-    // Map
     return (
       <div>
         <Box className="map-box">
@@ -128,7 +143,27 @@ function App() {
           />
           {loading && <Loading />}
         </Box>
+        <IconButton
+          sx={{ position: "absolute", top: 0, left: 0, width: 80, height: 80 }}
+          color="primary"
+          onClick={handleMenuOpen}
+        >
+          <AccountCircleIcon sx={{ fontSize: 70 }} />
+        </IconButton>
+
+        <Menu
+          anchorEl={anchorEl}
+          open={isMenuOpen}
+          onClose={handleMenuClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+          transformOrigin={{ vertical: "top", horizontal: "left" }}
+        >
+          <MenuItem onClick={handleRidesClicked}>My Rides</MenuItem>
+          <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
+        </Menu>
+
         <PullUpDrawer />
+        <RidesModal open={isRidesOpen} onClose={() => setIsRidesOpen(false)} />
       </div>
     );
   }

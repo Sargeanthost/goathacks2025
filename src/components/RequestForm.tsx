@@ -37,8 +37,12 @@ const PickupForm = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    console.log(pickup);
     const pickupCoordinates = pickup.features[0].geometry.coordinates;
     const destinationCoordinates = destination.features[0].geometry.coordinates;
+    const pickupName = pickup.features[0].properties.name;
+    const destinationName = destination.features[0].properties.name;
+    console.log(pickupName);
     const { data, error } = await supabase.from("request").insert({
       pickup: `POINT(${pickupCoordinates[0]} ${pickupCoordinates[1]})`,
       destination: `POINT(${destinationCoordinates[0]} ${destinationCoordinates[1]})`,
@@ -47,6 +51,8 @@ const PickupForm = () => {
       people_transferred: peopleTransferred,
       ride_share: rideShare,
       requester: session?.user.id,
+      pickup_name: pickupName,
+      destination_name: destinationName,
     });
 
     console.log(data);
@@ -114,7 +120,7 @@ const PickupForm = () => {
         label="Passengers"
         type="number"
         value={peopleTransferred}
-        onChange={(p) => setPeopleTransferred(p)}
+        onChange={(p) => setPeopleTransferred(p.target.value)}
         slotProps={{
           inputLabel: {
             shrink: true,
