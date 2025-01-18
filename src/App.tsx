@@ -51,28 +51,34 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    console.log(session);
-  }, [session]);
-
-  useEffect(() => {
-    console.log(supabase);
-  }, [supabase]);
-
   if (!session) {
-    return (<Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />)
+    return (
+      <Box
+        sx={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />
+      </Box>
+    );
   } else {
     return (
       <Box sx={{ position: "relative", width: "100%", height: "100vh" }}>
         <div
           id="map-container"
           ref={mapContainerRef}
-          style={{ width: "100%", height: "100%", visibility: !loading ? "visible" : "hidden" }}
+          style={{
+            width: "100%",
+            height: "100%",
+            visibility: !loading ? "visible" : "hidden",
+          }}
         />
 
-        {loading && (
-          <Loading />
-        )}
+        {loading && <Loading />}
       </Box>
     );
   }
