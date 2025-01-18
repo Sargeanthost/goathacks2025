@@ -66,12 +66,12 @@ function App() {
       >
         <div
           style={{
-            maxWidth: "350px", // Limit width for smaller screens
-            width: "100%", // Full width on mobile
+            maxWidth: "400px", // Limit width for smaller screens
+            width: "90%", // Full width on mobile
             padding: "20px",
             borderRadius: "8px",
             boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
-            backgroundColor: "#ffffff", // Log
+            backgroundColor: "#ffffff", // Login box color
           }}
         >
           <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />
