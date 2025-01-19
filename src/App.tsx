@@ -16,6 +16,7 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import PullUpDrawer from "./components/PullUpDrawer";
 import RidesModal from "./components/RidesModal";
+import DirectionsList from "./components/DirectionsList";
 
 function App() {
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -26,6 +27,12 @@ function App() {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
+  const mapboxAccessToken = import.meta.env.VITE_MAPBOX_PUBLIC_KEY;
+
+  // var directionsData:Object[] = [];
+  const [directionsData, setDirectionsData] = useState<any | null | Object[]>(
+    null
+  );
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -123,6 +130,7 @@ function App() {
         positionOptions: { enableHighAccuracy: true },
         trackUserLocation: true,
         showUserHeading: true,
+        showAccuracyCircle: false,
       });
 
       mapRef.current.addControl(
@@ -199,6 +207,94 @@ function App() {
     console.log(routeData);
   }, [routeData]);
 
+  useEffect(() => {
+    if (!routeData || !routeData.waypoints || routeData.waypoints.length === 0)
+      return;
+
+    const fetchRoute = async () => {
+      try {
+        // Order waypoints by "waypoint_index"
+        const orderedWaypoints = routeData.waypoints.sort(
+          (a: { waypoint_index: number }, b: { waypoint_index: number }) =>
+            a.waypoint_index - b.waypoint_index
+        );
+
+        // Build coordinates string from ordered waypoints
+        const coordinates = orderedWaypoints
+          .map((waypoint: { location: [string, string] }) =>
+            waypoint.location.join(",")
+          )
+          .join(";");
+
+        // Mapbox API URL
+        const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates}?geometries=polyline&steps=true&overview=full&access_token=${mapboxAccessToken}`;
+
+        // Fetch route data
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log("Reponse:", data);
+
+        // Pass the fetched data to DirectionsList
+        if (data.code === "Ok") {
+          // directionsData = data.routes[0].legs[0].steps;
+          setDirectionsData(data.routes[0].legs[0].steps);
+        } else {
+          console.error("Error in API response:", data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching route:", error);
+      }
+    };
+
+    fetchRoute();
+  }, [routeData?.waypoints]);
+
+  // console.log("Directions Data:", directionsData);
+
+  useEffect(() => {
+    if (!routeData || !routeData.waypoints || routeData.waypoints.length === 0)
+      return;
+
+    const fetchRoute = async () => {
+      try {
+        // Order waypoints by "waypoint_index"
+        const orderedWaypoints = routeData.waypoints.sort(
+          (a: { waypoint_index: number }, b: { waypoint_index: number }) =>
+            a.waypoint_index - b.waypoint_index
+        );
+
+        // Build coordinates string from ordered waypoints
+        const coordinates = orderedWaypoints
+          .map((waypoint: { location: [string, string] }) =>
+            waypoint.location.join(",")
+          )
+          .join(";");
+
+        // Mapbox API URL
+        const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates}?geometries=polyline&steps=true&overview=full&access_token=${mapboxAccessToken}`;
+
+        // Fetch route data
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log("Reponse:", data);
+
+        // Pass the fetched data to DirectionsList
+        if (data.code === "Ok") {
+          // directionsData = data.routes[0].legs[0].steps;
+          setDirectionsData(data.routes[0].legs[0].steps);
+        } else {
+          console.error("Error in API response:", data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching route:", error);
+      }
+    };
+
+    fetchRoute();
+  }, [routeData?.waypoints]);
+
+  // console.log("Directions Data:", directionsData);
+
   if (!session) {
     return (
       <div
@@ -267,6 +363,8 @@ function App() {
           onClose={() => setIsRidesOpen(false)}
           setRouteData={setRouteData}
         />
+
+        {directionsData && <DirectionsList stepsList={directionsData} />}
       </div>
     );
   }
