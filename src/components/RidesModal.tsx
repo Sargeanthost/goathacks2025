@@ -47,6 +47,8 @@ export default function RidesModal({
             estimatedPickupTime: isValidDate(d.estimated_pickup_time)
               ? new Date(d.estimated_pickup_time)
               : null,
+            routeId: d.route_id,
+            reqester: d.requester,
           }))
         );
       } else {
@@ -64,30 +66,54 @@ export default function RidesModal({
 
   const handleRideClick = async (ride: RideProps) => {
     clearRoutes();
-    try {
-      const coordinates = `${ride.pickup[0]},${ride.pickup[1]};${ride.destination[0]},${ride.destination[1]}`;
-      const apiUrl = `https://api.mapbox.com/optimized-trips/v1/mapbox/driving/${coordinates}?source=first&destination=last&roundtrip=false&access_token=${mapboxAccessToken}`;
+    if (ride.routeId === null) {
+      try {
+        const coordinates = `${ride.pickup[0]},${ride.pickup[1]};${ride.destination[0]},${ride.destination[1]}`;
+        const apiUrl = `https://api.mapbox.com/optimized-trips/v1/mapbox/driving/${coordinates}?source=first&destination=last&roundtrip=false&access_token=${mapboxAccessToken}`;
 
-      const response = await fetch(apiUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch route: ${response.statusText}`);
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch route: ${response.statusText}`);
+        }
+
+        const routeDataModal = await response.json();
+        console.log("Route Data:", routeDataModal);
+
+        if (routeDataModal.code === "Ok") {
+          setRouteData(routeDataModal);
+
+          setOpen(false);
+        } else {
+          console.error(
+            "Error in route optimization response:",
+            routeDataModal.message
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching route data:", error);
       }
+    } else {
+      const { data, error } = await supabase
+        .from("route")
+        .select("route")
+        .eq("id", ride.routeId);
 
-      const routeDataModal = await response.json();
-      console.log("Route Data:", routeDataModal);
-
-      if (routeDataModal.code === "Ok") {
-        setRouteData(routeDataModal);
-
-        setOpen(false);
+      if (error) {
+        console.error("Error:", error);
       } else {
-        console.error(
-          "Error in route optimization response:",
-          routeDataModal.message
-        );
+        console.log("Data:", data);
+
+        if (data[0].route.code === "Ok") {
+          setRouteData(data[0].route);
+
+          setOpen(false);
+        } else {
+          console.error(
+            "Error in route optimization response:",
+            data[0].route.message
+          );
+        }
       }
-    } catch (error) {
-      console.error("Error fetching route data:", error);
     }
   };
 

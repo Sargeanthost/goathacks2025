@@ -16,6 +16,8 @@ export interface RideProps {
   rideShare: boolean;
   vehicleType: "economy" | "eco-friendly" | "luxury"; // Updated to represent actual vehicle types
   estimatedPickupTime: Date;
+  routeId: string;
+  requester: string;
 }
 
 export default function Ride(props: RideProps) {
