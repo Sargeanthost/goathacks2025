@@ -33,9 +33,10 @@ export default function RidesModal({
           data.map((d) => ({
             pickupName: d.pickup_name,
             destinationName: d.destination_name,
-            pickupTime: isValidDate(d.pickup_time)
-              ? new Date(d.pickup_time)
-              : null,
+            pickupTime:
+              isValidDate(d.pickup_time) && d.pickup_time !== null
+                ? new Date(d.pickup_time)
+                : null,
             arrival: isValidDate(d.arrival) ? new Date(d.arrival) : null,
             destination: [d.destination_longitude, d.destination_latitude],
             pickup: [d.pickup_longitude, d.pickup_latitude],

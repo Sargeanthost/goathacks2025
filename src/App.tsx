@@ -249,7 +249,7 @@ function App() {
     };
 
     fetchRoute();
-  }, [routeData?.waypoints]);
+  }, [mapboxAccessToken, routeData, routeData?.waypoints]);
 
   // console.log("Directions Data:", directionsData);
 
@@ -293,7 +293,7 @@ function App() {
     };
 
     fetchRoute();
-  }, [routeData?.waypoints]);
+  }, [mapboxAccessToken, routeData, routeData?.waypoints]);
 
   // console.log("Directions Data:", directionsData);
 

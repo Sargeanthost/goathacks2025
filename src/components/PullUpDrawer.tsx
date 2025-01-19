@@ -36,7 +36,7 @@ export default function PullUpDrawer({
       {!isDrawerOpen && (
         <IconButton
           onClick={toggleDrawer(true)}
-          disabled={!routeData}
+          disabled={!routeData && session?.user.user_metadata.role === "driver"}
           sx={{
             position: "fixed",
             bottom: 16,

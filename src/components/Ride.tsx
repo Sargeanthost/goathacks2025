@@ -4,6 +4,7 @@ import EnergySavingsLeafIcon from "@mui/icons-material/EnergySavingsLeaf";
 import CarIcon from "@mui/icons-material/DirectionsCar"; // Icon for economy car
 import LuxuryIcon from "@mui/icons-material/Star"; // Icon for luxury vehicles
 import Diversity3Icon from "@mui/icons-material/Diversity3";
+import { useEffect } from "react";
 
 export interface RideProps {
   pickupName: string;
@@ -43,6 +44,10 @@ export default function Ride(props: RideProps) {
         return "default";
     }
   };
+
+  useEffect(() => {
+    console.log(props);
+  }, [props]);
 
   return (
     <Card
@@ -84,7 +89,14 @@ export default function Ride(props: RideProps) {
           </Box>
         </Box>
         <Box mt={2}>
-          <Box sx={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: "1rem",
+              alignItems: "center",
+              justifyContent: "space-around",
+            }}
+          >
             <Box
               sx={{
                 display: "flex",

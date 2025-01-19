@@ -6,9 +6,19 @@ import {
   ListItem,
   ListItemText,
   Divider,
+  Button,
 } from "@mui/material";
+import { useSupabase } from "../hooks/useSupabase";
 
-function DirectionsList({ legList }: { legList: any }) {
+function DirectionsList({
+  legList,
+  setRouteData,
+  routeData,
+}: {
+  legList: any;
+  setRouteData: any;
+  routeData: any;
+}) {
   // if (!routeData || !routeData.trips || routeData.trips.length === 0) {
   //     console.log("NO ROUTE DATA");
   //   return <div>No route available</div>;
@@ -20,16 +30,29 @@ function DirectionsList({ legList }: { legList: any }) {
 
   console.log(legList);
 
+  const { supabase } = useSupabase();
+
+  async function endRoute() {
+    console.log(routeData);
+    if (!routeData) return;
+    await supabase
+      .from("route")
+      .update({ is_completed: true })
+      .eq("id", routeData.id);
+    setRouteData(null);
+  }
+
   return (
     <Box
       sx={{
         top: 80,
         left: 10,
-        width: "300px",
         backgroundColor: "white",
-        padding: "10px",
+        padding: "1rem",
         borderRadius: "8px",
         boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+        maxHeight: 400,
+        overflowY: "scroll",
       }}
     >
       <Typography variant="h5" gutterBottom>
@@ -55,6 +78,9 @@ function DirectionsList({ legList }: { legList: any }) {
           </List>
         </>
       ))}
+      <Button variant="contained" onClick={endRoute}>
+        End route
+      </Button>
     </Box>
   );
 }
