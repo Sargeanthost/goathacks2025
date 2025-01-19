@@ -14,6 +14,7 @@ export interface RideProps {
   pickup: number[];
   rideShare: boolean;
   vehicleType: "economy" | "eco-friendly" | "luxury"; // Updated to represent actual vehicle types
+  estimatedPickupTime: Date;
 }
 
 export default function Ride(props: RideProps) {
@@ -61,7 +62,7 @@ export default function Ride(props: RideProps) {
           }}
         >
           <Typography variant="h6" component="div">
-            Ride Request
+            {props.estimatedPickupTime.toLocaleDateString()}
           </Typography>
           <Box sx={{ display: "flex", gap: "0.25rem" }}>
             <Chip
@@ -101,7 +102,13 @@ export default function Ride(props: RideProps) {
                           hour: "2-digit",
                           minute: "2-digit",
                         })
-                      : "PENDING"
+                      : props.estimatedPickupTime?.toLocaleTimeString(
+                          undefined,
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )
                   }
                   color={!props.pickupTime ? "warning" : "default"}
                 />

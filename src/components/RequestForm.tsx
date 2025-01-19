@@ -22,6 +22,7 @@ import {
 } from "@mui/x-date-pickers";
 import { NumberInput } from "@mui/base/Unstable_NumberInput/NumberInput";
 import { useSession } from "../hooks/useSession";
+import { CheckCircle } from "@mui/icons-material";
 
 const PickupForm = () => {
   const { supabase } = useSupabase();
@@ -34,6 +35,7 @@ const PickupForm = () => {
   const [vehicleType, setVehicleType] = useState("eco-friendly");
   const [peopleTransferred, setPeopleTransferred] = useState(1);
   const [rideShare, setRideShare] = useState(true);
+  const [formSubmitted, setFormSubmitted] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -43,6 +45,27 @@ const PickupForm = () => {
     const pickupName = pickup.features[0].properties.name;
     const destinationName = destination.features[0].properties.name;
     console.log(pickupName);
+
+    const params = new URLSearchParams({
+      access_token: import.meta.env.VITE_MAPBOX_PUBLIC_KEY,
+      roundtrip: "false",
+      source: "first",
+      destination: "last",
+    });
+
+    const coordinates = `${pickupCoordinates[0]},${pickupCoordinates[1]};${destinationCoordinates[0]},${destinationCoordinates[1]}`;
+
+    const url = `${
+      import.meta.env.VITE_MAPBOX_URL
+    }${coordinates}?${params.toString()}`;
+
+    console.log(url);
+
+    const res = await fetch(url);
+    const json = await res.json();
+
+    const estimatedPickupTime = time?.subtract(json.trips[0].duration * 1000);
+
     const { data, error } = await supabase.from("request").insert({
       pickup: `POINT(${pickupCoordinates[0]} ${pickupCoordinates[1]})`,
       destination: `POINT(${destinationCoordinates[0]} ${destinationCoordinates[1]})`,
@@ -53,7 +76,10 @@ const PickupForm = () => {
       requester: session?.user.id,
       pickup_name: pickupName,
       destination_name: destinationName,
+      estimated_pickup_time: estimatedPickupTime,
     });
+
+    setFormSubmitted(true);
 
     console.log(data);
     console.log(error);
@@ -81,65 +107,86 @@ const PickupForm = () => {
         maxWidth: "100vw", // Prevent overflow
       }}
     >
-      <Typography variant="h5">Let's find a whip 😎</Typography>
-
-      <FormLabel>
-        Pickup
-        <SearchBox
-          onRetrieve={(l) => setPickup(l)}
-          accessToken={import.meta.env.VITE_MAPBOX_PUBLIC_KEY}
-        />
-      </FormLabel>
-      <FormLabel>
-        Destination
-        <SearchBox
-          onRetrieve={(l) => setDestination(l)}
-          accessToken={import.meta.env.VITE_MAPBOX_PUBLIC_KEY}
-        />
-      </FormLabel>
-      <MobileDateTimePicker
-        label="Time"
-        value={time}
-        onChange={(t) => setTime(t)}
-      />
-      <FormControl fullWidth>
-        <InputLabel id="vehicle-type">Vehicle Type</InputLabel>
-        <Select
-          labelId="vehicle-type"
-          label="Vehicle Type"
-          defaultValue="eco-friendly"
-          onChange={(t) => setVehicleType(t.target.value)}
-        >
-          <MenuItem value={"eco-friendly"}>Eco-Friendly</MenuItem>
-          <MenuItem value={"economy"}>Economy</MenuItem>
-          <MenuItem value={"luxury"}>Luxury</MenuItem>
-        </Select>
-      </FormControl>
-      <TextField
-        id="outlined-number"
-        label="Passengers"
-        type="number"
-        value={peopleTransferred}
-        onChange={(p) => setPeopleTransferred(p.target.value)}
-        slotProps={{
-          inputLabel: {
-            shrink: true,
-          },
-        }}
-      />
-      <FormControlLabel
-        control={
-          <Checkbox
-            defaultChecked={true}
-            value={rideShare}
-            onChange={(a) => setRideShare(a.target.checked)}
+      <Typography variant="h5">
+        {!formSubmitted ? "Let's find a whip 😎" : "You're booked!"}
+      </Typography>
+      {!formSubmitted ? (
+        <>
+          {/* Existing form fields */}
+          <FormLabel>
+            Pickup
+            <SearchBox
+              onRetrieve={(l) => setPickup(l)}
+              accessToken={import.meta.env.VITE_MAPBOX_PUBLIC_KEY}
+            />
+          </FormLabel>
+          <FormLabel>
+            Destination
+            <SearchBox
+              onRetrieve={(l) => setDestination(l)}
+              accessToken={import.meta.env.VITE_MAPBOX_PUBLIC_KEY}
+            />
+          </FormLabel>
+          <MobileDateTimePicker
+            label="Time"
+            value={time}
+            onChange={(t) => setTime(t)}
           />
-        }
-        label="Allow ride share"
-      />
-      <Button type="submit" variant="contained" color="primary">
-        Submit
-      </Button>
+          <FormControl fullWidth>
+            <InputLabel id="vehicle-type">Vehicle Type</InputLabel>
+            <Select
+              labelId="vehicle-type"
+              label="Vehicle Type"
+              defaultValue="eco-friendly"
+              onChange={(t) => setVehicleType(t.target.value)}
+            >
+              <MenuItem value={"eco-friendly"}>Eco-Friendly</MenuItem>
+              <MenuItem value={"economy"}>Economy</MenuItem>
+              <MenuItem value={"luxury"}>Luxury</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            id="outlined-number"
+            label="Passengers"
+            type="number"
+            value={peopleTransferred}
+            onChange={(p) => setPeopleTransferred(p.target.value)}
+            slotProps={{
+              inputLabel: {
+                shrink: true,
+              },
+            }}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                defaultChecked={true}
+                value={rideShare}
+                onChange={(a) => setRideShare(a.target.checked)}
+              />
+            }
+            label="Allow ride share"
+          />
+          <Button type="submit" variant="contained" color="primary">
+            Submit
+          </Button>
+        </>
+      ) : (
+        <Box
+          sx={{
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          <CheckCircle sx={{ color: "green", fontSize: 60 }} />
+          <Typography variant="h6" color="success.main">
+            Your ride has been successfully booked!
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };

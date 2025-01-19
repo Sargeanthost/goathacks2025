@@ -10,7 +10,7 @@ export default function RidesModal({
   open,
   setOpen,
   onClose,
-  setRouteData, 
+  setRouteData,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -41,6 +41,9 @@ export default function RidesModal({
             pickup: [d.pickup_longitude, d.pickup_latitude],
             rideShare: d.ride_share,
             vehicleType: d.vehicle_type,
+            estimatedPickupTime: isValidDate(d.estimated_pickup_time)
+              ? new Date(d.estimated_pickup_time)
+              : null,
           }))
         );
       } else {
@@ -71,10 +74,13 @@ export default function RidesModal({
 
       if (routeDataModal.code === "Ok") {
         setRouteData(routeDataModal);
-        
+
         setOpen(false);
       } else {
-        console.error("Error in route optimization response:", routeDataModal.message);
+        console.error(
+          "Error in route optimization response:",
+          routeDataModal.message
+        );
       }
     } catch (error) {
       console.error("Error fetching route data:", error);
@@ -121,7 +127,12 @@ export default function RidesModal({
         >
           {loading && <CircularProgress />}
           {rides.map((r, index) => (
-            <div key={index} onClick={() => handleRideClick(r)}>
+            <div
+              key={index}
+              onClick={() => handleRideClick(r)}
+              style={{ cursor: "pointer" }}
+              aria-roledescription="button"
+            >
               <Ride {...r} />
             </div>
           ))}

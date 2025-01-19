@@ -30,7 +30,9 @@ function App() {
   const mapboxAccessToken = import.meta.env.VITE_MAPBOX_PUBLIC_KEY;
 
   // var directionsData:Object[] = [];
-  const [directionsData, setDirectionsData] = useState<any | null | Object[]>(null);
+  const [directionsData, setDirectionsData] = useState<any | null | Object[]>(
+    null
+  );
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -45,10 +47,15 @@ function App() {
     setIsRidesOpen(true);
   };
 
+  const handleLogoutClicked = async () => {
+    handleMenuClose();
+    await supabase.auth.signOut();
+    window.location.reload();
+  };
+
   const [isRidesOpen, setIsRidesOpen] = useState(false);
 
   const [routeData, setRouteData] = useState<any | null>(null);
-
 
   //update the map whenever routeData changes
   useEffect(() => {
@@ -61,7 +68,7 @@ function App() {
       .decode(routeData.trips[0].geometry)
       .map(([lat, lng]) => [lng, lat]);
 
-    //delete existing route 
+    //delete existing route
     if (map.getSource("route")) {
       map.removeLayer("route");
       map.removeSource("route");
@@ -154,9 +161,55 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (session?.user.user_metadata.role !== "driver") return;
+
+    const updateLocationId = setInterval(async () => {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+
+          await supabase
+            .from("drivers")
+            .update({ location: `POINT(${longitude} ${latitude})` })
+            .eq("driver_id", session.user.id);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        }
+      );
+    }, 5000);
+
+    const updateRouteId = setInterval(async () => {
+      if (routeData) return;
+      const { data } = await supabase.rpc("get_nearest_route", {
+        p_driver_id: session.user.id,
+      });
+      if (data.length > 0) {
+        console.log(data);
+        await supabase
+          .from("route")
+          .update({ assigned_driver_id: session.user.id })
+          .eq("id", data[0].route_id);
+      }
+      data[0].route.id = data[0].route_id;
+      setRouteData(data[0].route);
+    }, 15000);
+
+    return () => {
+      clearInterval(updateLocationId);
+      clearInterval(updateRouteId);
+    };
+  }, [routeData, session, supabase]);
 
   useEffect(() => {
-    if (!routeData || !routeData.waypoints || routeData.waypoints.length === 0) return;
+    console.log(routeData);
+  }, [routeData]);
+
+  useEffect(() => {
+    if (!routeData || !routeData.waypoints || routeData.waypoints.length === 0)
+      return;
 
     const fetchRoute = async () => {
       try {
@@ -181,7 +234,6 @@ function App() {
         const data = await response.json();
         console.log("Reponse:", data);
 
-
         // Pass the fetched data to DirectionsList
         if (data.code === "Ok") {
           // directionsData = data.routes[0].legs[0].steps;
@@ -197,6 +249,49 @@ function App() {
     fetchRoute();
   }, [routeData?.waypoints]);
 
+  // console.log("Directions Data:", directionsData);
+
+  useEffect(() => {
+    if (!routeData || !routeData.waypoints || routeData.waypoints.length === 0)
+      return;
+
+    const fetchRoute = async () => {
+      try {
+        // Order waypoints by "waypoint_index"
+        const orderedWaypoints = routeData.waypoints.sort(
+          (a: { waypoint_index: number }, b: { waypoint_index: number }) =>
+            a.waypoint_index - b.waypoint_index
+        );
+
+        // Build coordinates string from ordered waypoints
+        const coordinates = orderedWaypoints
+          .map((waypoint: { location: [string, string] }) =>
+            waypoint.location.join(",")
+          )
+          .join(";");
+
+        // Mapbox API URL
+        const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates}?geometries=polyline&steps=true&overview=full&access_token=${mapboxAccessToken}`;
+
+        // Fetch route data
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log("Reponse:", data);
+
+        // Pass the fetched data to DirectionsList
+        if (data.code === "Ok") {
+          // directionsData = data.routes[0].legs[0].steps;
+          setDirectionsData(data.routes[0].legs[0].steps);
+        } else {
+          console.error("Error in API response:", data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching route:", error);
+      }
+    };
+
+    fetchRoute();
+  }, [routeData?.waypoints]);
 
   // console.log("Directions Data:", directionsData);
 
@@ -255,11 +350,13 @@ function App() {
           anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
           transformOrigin={{ vertical: "top", horizontal: "left" }}
         >
-          <MenuItem onClick={handleRidesClicked}>My Rides</MenuItem>
-          <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
+          {session?.user.user_metadata.role !== "driver" && (
+            <MenuItem onClick={handleRidesClicked}>My Rides</MenuItem>
+          )}{" "}
+          <MenuItem onClick={handleLogoutClicked}>Logout</MenuItem>
         </Menu>
 
-        <PullUpDrawer />
+        <PullUpDrawer setRouteData={setRouteData} routeData={routeData} />
         <RidesModal
           setOpen={setIsRidesOpen}
           open={isRidesOpen}
@@ -267,7 +364,7 @@ function App() {
           setRouteData={setRouteData}
         />
 
-        { directionsData && <DirectionsList stepsList={directionsData} />}
+        {directionsData && <DirectionsList stepsList={directionsData} />}
       </div>
     );
   }
