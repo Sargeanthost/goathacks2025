@@ -31,8 +31,11 @@ const PullUpDrawer: React.FC = () => {
             left: "50%",
             transform: "translateX(-50%)",
             zIndex: 1300, // Ensure it's above other content
-            backgroundColor: "primary.main",
-            color: "white",
+            backgroundColor: "primary.main", // Primary color background
+            color: "white", // White icon
+            "&:hover": {
+              backgroundColor: "primary.dark", // Darker shade on hover
+            },
           }}
         >
           <ArrowDropUpIcon />
@@ -51,7 +54,6 @@ const PullUpDrawer: React.FC = () => {
           },
         }}
       >
-        {" "}
         <Box
           sx={{
             width: "100%",
@@ -67,7 +69,11 @@ const PullUpDrawer: React.FC = () => {
             sx={{
               alignSelf: "center",
               backgroundColor: "primary.main",
-              color: "white",
+              backgroundColor: "primary.main", // Primary color background
+              color: "white", // White icon
+              "&:hover": {
+                backgroundColor: "primary.dark", // Darker shade on hover
+              },
               mb: 2,
             }}
           >

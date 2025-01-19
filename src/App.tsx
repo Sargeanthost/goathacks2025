@@ -1,6 +1,10 @@
 import { useRef, useEffect, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import polyline from "@mapbox/polyline";
 
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -11,6 +15,7 @@ import { useSession } from "./hooks/useSession";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import PullUpDrawer from "./components/PullUpDrawer";
+import RidesModal from "./components/RidesModal";
 
 function App() {
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -19,12 +24,32 @@ function App() {
   const { supabase } = useSupabase();
   const { session } = useSession();
 
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const isMenuOpen = Boolean(anchorEl);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleRidesClicked = () => {
+    handleMenuClose();
+    setIsRidesOpen(true);
+  };
+
+  const [isRidesOpen, setIsRidesOpen] = useState(false);
+
   const routeData = {"code":"Ok","waypoints":[{"distance":2.7237214779669503,"name":"Gardner Street","location":[-71.814507,42.248807],"waypoint_index":0,"trips_index":0},{"distance":5.010421148407513,"name":"Tuckerman Street","location":[-71.80151,42.272547],"waypoint_index":3,"trips_index":0},{"distance":3.698813944183319,"name":"Thomas Street","location":[-71.800246,42.267923],"waypoint_index":1,"trips_index":0},{"distance":5.010421148407513,"name":"Tuckerman Street","location":[-71.80151,42.272547],"waypoint_index":2,"trips_index":0}],"trips":[{"geometry":"avz`GtgiuLyOcZbBcGsZkReYik@gJ{L_GQwFzGeW|AWlKy@fNcZkF??","legs":[{"steps":[],"summary":"","weight":718,"duration":574.1,"distance":3095.5},{"steps":[],"summary":"","weight":199.5,"duration":150,"distance":696.8},{"steps":[],"summary":"","weight":0,"duration":0,"distance":0}],"weight_name":"routability","weight":917.5,"duration":724.1,"distance":3792.3}]};
 
   useEffect(() => {
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_PUBLIC_KEY;
 
-    const handleSuccess = (position: { coords: { latitude: number; longitude: number } }) => {
+    const handleSuccess = (position: {
+      coords: { latitude: number; longitude: number };
+    }) => {
       const { latitude, longitude } = position.coords;
 
       mapRef.current = new mapboxgl.Map({
@@ -36,25 +61,27 @@ function App() {
 
       //geolocation controls
       const geolocateControl = new mapboxgl.GeolocateControl({
-        positionOptions: {
-          enableHighAccuracy: true,
-        },
+        positionOptions: { enableHighAccuracy: true },
         trackUserLocation: true,
         showUserHeading: true,
       });
 
-      mapRef.current.addControl(new mapboxgl.NavigationControl(), "bottom-right");
+      mapRef.current.addControl(
+        new mapboxgl.NavigationControl(),
+        "bottom-right"
+      );
       mapRef.current.addControl(geolocateControl, "bottom-right");
       // mapRef.current.addControl(geolocateControl);
       // mapRef.current.addControl(new mapboxgl.NavigationControl());
-      
 
       mapRef.current.on("load", () => {
         setLoading(false);
         geolocateControl.trigger();
 
         //route
-        const coordinates = polyline.decode(routeData.trips[0].geometry).map(([lat, lng]) => [lng, lat]);
+        const coordinates = polyline
+          .decode(routeData.trips[0].geometry)
+          .map(([lat, lng]) => [lng, lat]);
         mapRef.current?.addSource("route", {
           type: "geojson",
           data: {
@@ -113,7 +140,6 @@ function App() {
       <div
         style={{
           display: "flex",
-          flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
           height: "100vh",
@@ -149,7 +175,27 @@ function App() {
           />
           {loading && <Loading />}
         </Box>
+        <IconButton
+          sx={{ position: "absolute", top: 0, right: 0, width: 80, height: 80 }}
+          color="primary"
+          onClick={handleMenuOpen}
+        >
+          <AccountCircleIcon sx={{ fontSize: 70 }} />
+        </IconButton>
+
+        <Menu
+          anchorEl={anchorEl}
+          open={isMenuOpen}
+          onClose={handleMenuClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+          transformOrigin={{ vertical: "top", horizontal: "left" }}
+        >
+          <MenuItem onClick={handleRidesClicked}>My Rides</MenuItem>
+          <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
+        </Menu>
+
         <PullUpDrawer />
+        <RidesModal open={isRidesOpen} onClose={() => setIsRidesOpen(false)} />
       </div>
     );
   }
