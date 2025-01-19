@@ -61,7 +61,7 @@ function App() {
       .decode(routeData.trips[0].geometry)
       .map(([lat, lng]) => [lng, lat]);
 
-    //delete existing route 
+    //delete existing route
     if (map.getSource("route")) {
       map.removeLayer("route");
       map.removeSource("route");
@@ -153,6 +153,52 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (session?.user.user_metadata.role !== "driver") return;
+
+    const updateLocationId = setInterval(async () => {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+
+          await supabase
+            .from("drivers")
+            .update({ location: `POINT(${longitude} ${latitude})` })
+            .eq("driver_id", session.user.id);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        }
+      );
+    }, 5000);
+
+    const updateRouteId = setInterval(async () => {
+      if (routeData) return;
+      const { data } = await supabase.rpc("get_nearest_route", {
+        p_driver_id: session.user.id,
+      });
+      if (data.length > 0) {
+        console.log(data);
+        await supabase
+          .from("route")
+          .update({ assigned_driver_id: session.user.id })
+          .eq("id", data[0].route_id);
+      }
+      data[0].route.id = data[0].route_id;
+      setRouteData(data[0].route);
+    }, 15000);
+
+    return () => {
+      clearInterval(updateLocationId);
+      clearInterval(updateRouteId);
+    };
+  }, [routeData, session, supabase]);
+
+  useEffect(() => {
+    console.log(routeData);
+  }, [routeData]);
+
   if (!session) {
     return (
       <div
@@ -208,11 +254,13 @@ function App() {
           anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
           transformOrigin={{ vertical: "top", horizontal: "left" }}
         >
-          <MenuItem onClick={handleRidesClicked}>My Rides</MenuItem>
+          {session?.user.user_metadata.role !== "driver" && (
+            <MenuItem onClick={handleRidesClicked}>My Rides</MenuItem>
+          )}{" "}
           <MenuItem onClick={handleLogoutClicked}>Logout</MenuItem>
         </Menu>
 
-        <PullUpDrawer />
+        <PullUpDrawer setRouteData={setRouteData} routeData={routeData} />
         <RidesModal
           setOpen={setIsRidesOpen}
           open={isRidesOpen}

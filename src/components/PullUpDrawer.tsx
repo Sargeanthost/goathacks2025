@@ -3,9 +3,18 @@ import { Drawer, IconButton, Box, Typography } from "@mui/material";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import RequestForm from "./RequestForm";
+import { useSession } from "../hooks/useSession";
+import Routes from "./Routes";
 
-const PullUpDrawer: React.FC = () => {
+export default function PullUpDrawer({
+  routeData,
+  setRouteData,
+}: {
+  routeData: any;
+  setRouteData: (routeData: null | any) => void;
+}) {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const { session } = useSession();
 
   const toggleDrawer =
     (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
@@ -25,6 +34,7 @@ const PullUpDrawer: React.FC = () => {
       {!isDrawerOpen && (
         <IconButton
           onClick={toggleDrawer(true)}
+          disabled={!routeData}
           sx={{
             position: "fixed",
             bottom: 16,
@@ -44,6 +54,7 @@ const PullUpDrawer: React.FC = () => {
 
       {/* Drawer */}
       <Drawer
+        hideBackdrop={true}
         anchor="bottom"
         open={isDrawerOpen}
         onClose={toggleDrawer(false)}
@@ -54,6 +65,7 @@ const PullUpDrawer: React.FC = () => {
           },
         }}
       >
+        {" "}
         <Box
           sx={{
             width: "100%",
@@ -68,7 +80,6 @@ const PullUpDrawer: React.FC = () => {
             onClick={toggleDrawer(false)}
             sx={{
               alignSelf: "center",
-              backgroundColor: "primary.main",
               backgroundColor: "primary.main", // Primary color background
               color: "white", // White icon
               "&:hover": {
@@ -79,12 +90,13 @@ const PullUpDrawer: React.FC = () => {
           >
             <ArrowDropDownIcon />
           </IconButton>
-
-          <RequestForm />
+          {session?.user.user_metadata.role !== "driver" ? (
+            <RequestForm />
+          ) : (
+            <Routes setRouteData={setRouteData} routeData={routeData} />
+          )}
         </Box>
       </Drawer>
     </div>
   );
-};
-
-export default PullUpDrawer;
+}
