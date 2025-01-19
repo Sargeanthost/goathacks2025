@@ -135,6 +135,7 @@ function App() {
   }, [routeData]);
 
   useEffect(() => {
+    if (!session) return;
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_PUBLIC_KEY;
 
     const handleSuccess = (position: {
@@ -183,7 +184,7 @@ function App() {
     return () => {
       mapRef.current?.remove();
     };
-  }, []);
+  }, [session]);
 
   useEffect(() => {
     if (session?.user.user_metadata.role !== "driver") return;
