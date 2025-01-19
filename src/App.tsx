@@ -237,7 +237,9 @@ function App() {
         // Pass the fetched data to DirectionsList
         if (data.code === "Ok") {
           // directionsData = data.routes[0].legs[0].steps;
-          setDirectionsData(data.routes[0].legs[0].steps);
+          console.log("LEGS: " + data.routes[0].legs);
+          const steps = data.routes[0].legs.map((l) => l.steps);
+          setDirectionsData(steps);
         } else {
           console.error("Error in API response:", data.message);
         }
@@ -281,7 +283,7 @@ function App() {
         // Pass the fetched data to DirectionsList
         if (data.code === "Ok") {
           // directionsData = data.routes[0].legs[0].steps;
-          setDirectionsData(data.routes[0].legs[0].steps);
+          setDirectionsData(data.routes[0].legs);
         } else {
           console.error("Error in API response:", data.message);
         }
@@ -356,7 +358,11 @@ function App() {
           <MenuItem onClick={handleLogoutClicked}>Logout</MenuItem>
         </Menu>
 
-        <PullUpDrawer setRouteData={setRouteData} routeData={routeData} />
+        <PullUpDrawer
+          setRouteData={setRouteData}
+          routeData={routeData}
+          legList={directionsData}
+        />
         <RidesModal
           setOpen={setIsRidesOpen}
           open={isRidesOpen}
@@ -364,7 +370,7 @@ function App() {
           setRouteData={setRouteData}
         />
 
-        {directionsData && <DirectionsList stepsList={directionsData} />}
+        {/* {directionsData && <DirectionsList legList={directionsData} />} */}
       </div>
     );
   }

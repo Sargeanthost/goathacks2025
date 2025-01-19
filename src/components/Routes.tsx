@@ -2,13 +2,16 @@ import { Box, Button, Typography } from "@mui/material";
 import PlaceIcon from "@mui/icons-material/Place";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useSupabase } from "../hooks/useSupabase";
+import DirectionsList from "./DirectionsList";
 
 export default function Routes({
   routeData,
   setRouteData,
+  legList,
 }: {
   routeData: any;
   setRouteData: (routeData: null | any) => void;
+  legList: any;
 }) {
   // Example route data
   const route = {
@@ -42,24 +45,7 @@ export default function Routes({
         boxShadow: 3,
       }}
     >
-      <Typography variant="h5">Current Route</Typography>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <PlaceIcon />
-          <Typography variant="body1">{`Pickup: ${route.pickup}`}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <PlaceIcon />
-          <Typography variant="body1">{`Destination: ${route.destination}`}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <AccessTimeIcon />
-          <Typography variant="body1">{`Arrival Time: ${route.arrivalTime}`}</Typography>
-        </Box>
-        <Button variant="contained" onClick={endRoute}>
-          Complete Route
-        </Button>
-      </Box>
+      <DirectionsList legList={legList} />
     </Box>
   );
 }

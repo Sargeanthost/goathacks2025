@@ -9,9 +9,11 @@ import Routes from "./Routes";
 export default function PullUpDrawer({
   routeData,
   setRouteData,
+  legList,
 }: {
   routeData: any;
   setRouteData: (routeData: null | any) => void;
+  legList: any;
 }) {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const { session } = useSession();
@@ -93,7 +95,11 @@ export default function PullUpDrawer({
           {session?.user.user_metadata.role !== "driver" ? (
             <RequestForm />
           ) : (
-            <Routes setRouteData={setRouteData} routeData={routeData} />
+            <Routes
+              setRouteData={setRouteData}
+              routeData={routeData}
+              legList={legList}
+            />
           )}
         </Box>
       </Drawer>
