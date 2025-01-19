@@ -42,7 +42,60 @@ function App() {
 
   const [isRidesOpen, setIsRidesOpen] = useState(false);
 
-  const routeData = {"code":"Ok","waypoints":[{"distance":2.7237214779669503,"name":"Gardner Street","location":[-71.814507,42.248807],"waypoint_index":0,"trips_index":0},{"distance":5.010421148407513,"name":"Tuckerman Street","location":[-71.80151,42.272547],"waypoint_index":3,"trips_index":0},{"distance":3.698813944183319,"name":"Thomas Street","location":[-71.800246,42.267923],"waypoint_index":1,"trips_index":0},{"distance":5.010421148407513,"name":"Tuckerman Street","location":[-71.80151,42.272547],"waypoint_index":2,"trips_index":0}],"trips":[{"geometry":"avz`GtgiuLyOcZbBcGsZkReYik@gJ{L_GQwFzGeW|AWlKy@fNcZkF??","legs":[{"steps":[],"summary":"","weight":718,"duration":574.1,"distance":3095.5},{"steps":[],"summary":"","weight":199.5,"duration":150,"distance":696.8},{"steps":[],"summary":"","weight":0,"duration":0,"distance":0}],"weight_name":"routability","weight":917.5,"duration":724.1,"distance":3792.3}]};
+  const [routeData, setRouteData] = useState<any | null>(null);
+
+  //update the map whenever routeData changes
+  useEffect(() => {
+    if (!routeData || !mapRef.current) return;
+
+    const map = mapRef.current;
+
+    //route geometry into coords
+    const coordinates = polyline
+      .decode(routeData.trips[0].geometry)
+      .map(([lat, lng]) => [lng, lat]);
+
+    //delete existing route 
+    if (map.getSource("route")) {
+      map.removeLayer("route");
+      map.removeSource("route");
+    }
+
+    // add route
+    map.addSource("route", {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates,
+        },
+        properties: {},
+      },
+    });
+
+    map.addLayer({
+      id: "route",
+      type: "line",
+      source: "route",
+      layout: {
+        "line-join": "round",
+        "line-cap": "round",
+      },
+      paint: {
+        "line-color": "#3b9ddd",
+        "line-width": 4,
+      },
+    });
+
+    //waypoints
+    routeData.waypoints.forEach((waypoint: any) => {
+      new mapboxgl.Marker()
+        .setLngLat(waypoint.location as [number, number])
+        .setPopup(new mapboxgl.Popup().setText(waypoint.name || "Waypoint"))
+        .addTo(map);
+    });
+  }, [routeData]);
 
   useEffect(() => {
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_PUBLIC_KEY;
@@ -59,7 +112,7 @@ function App() {
         zoom: 10.12,
       });
 
-      //geolocation controls
+      //controls
       const geolocateControl = new mapboxgl.GeolocateControl({
         positionOptions: { enableHighAccuracy: true },
         trackUserLocation: true,
@@ -71,51 +124,10 @@ function App() {
         "bottom-right"
       );
       mapRef.current.addControl(geolocateControl, "bottom-right");
-      // mapRef.current.addControl(geolocateControl);
-      // mapRef.current.addControl(new mapboxgl.NavigationControl());
 
       mapRef.current.on("load", () => {
         setLoading(false);
         geolocateControl.trigger();
-
-        //route
-        const coordinates = polyline
-          .decode(routeData.trips[0].geometry)
-          .map(([lat, lng]) => [lng, lat]);
-        mapRef.current?.addSource("route", {
-          type: "geojson",
-          data: {
-            type: "Feature",
-            geometry: {
-              type: "LineString",
-              coordinates,
-            },
-            properties: {},
-          },
-        });
-
-        // add route
-        mapRef.current?.addLayer({
-          id: "route",
-          type: "line",
-          source: "route",
-          layout: {
-            "line-join": "round",
-            "line-cap": "round",
-          },
-          paint: {
-            "line-color": "#3b9ddd",
-            "line-width": 4,
-          },
-        });
-
-        // add waypoints
-        routeData.waypoints.forEach((waypoint) => {
-          new mapboxgl.Marker()
-            .setLngLat(waypoint.location as [number, number])
-            .setPopup(new mapboxgl.Popup().setText(waypoint.name || "Waypoint"))
-            .addTo(mapRef.current!);
-        });
       });
     };
 
@@ -199,6 +211,7 @@ function App() {
           setOpen={setIsRidesOpen}
           open={isRidesOpen}
           onClose={() => setIsRidesOpen(false)}
+          setRouteData={setRouteData}
         />
       </div>
     );

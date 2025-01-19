@@ -4,20 +4,24 @@ import { useEffect, useState } from "react";
 import { useSession } from "../hooks/useSession";
 import Ride, { RideProps } from "./Ride";
 import Loading from "./Loading";
+import polyline from "@mapbox/polyline";
 
 export default function RidesModal({
   open,
   setOpen,
   onClose,
+  setRouteData, 
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   onClose: () => void;
+  setRouteData: (routeData: any) => void;
 }) {
   const { supabase } = useSupabase();
   const { session } = useSession();
   const [rides, setRides] = useState<RideProps[]>([]);
   const [loading, setLoading] = useState(true);
+  const mapboxAccessToken = import.meta.env.VITE_MAPBOX_PUBLIC_KEY;
 
   useEffect(() => {
     if (!open) return;
@@ -25,8 +29,6 @@ export default function RidesModal({
       const { error, data } = await supabase.rpc("get_all_requests");
       setLoading(false);
       if (data) {
-        console.log(data);
-        console.log(error);
         setRides(
           data.map((d) => ({
             pickupName: d.pickup_name,
@@ -41,6 +43,8 @@ export default function RidesModal({
             vehicleType: d.vehicle_type,
           }))
         );
+      } else {
+        console.error("Error fetching rides:", error);
       }
     }
 
@@ -50,6 +54,31 @@ export default function RidesModal({
   const isValidDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return !isNaN(date.getTime());
+  };
+
+  const handleRideClick = async (ride: RideProps) => {
+    try {
+      const coordinates = `${ride.pickup[0]},${ride.pickup[1]};${ride.destination[0]},${ride.destination[1]}`;
+      const apiUrl = `https://api.mapbox.com/optimized-trips/v1/mapbox/driving/${coordinates}?source=first&destination=last&roundtrip=false&access_token=${mapboxAccessToken}`;
+
+      const response = await fetch(apiUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch route: ${response.statusText}`);
+      }
+
+      const routeDataModal = await response.json();
+      console.log("Route Data:", routeDataModal);
+
+      if (routeDataModal.code === "Ok") {
+        setRouteData(routeDataModal);
+        
+        setOpen(false);
+      } else {
+        console.error("Error in route optimization response:", routeDataModal.message);
+      }
+    } catch (error) {
+      console.error("Error fetching route data:", error);
+    }
   };
 
   return (
@@ -91,8 +120,10 @@ export default function RidesModal({
           }}
         >
           {loading && <CircularProgress />}
-          {rides.map((r) => (
-            <Ride {...r} />
+          {rides.map((r, index) => (
+            <div key={index} onClick={() => handleRideClick(r)}>
+              <Ride {...r} />
+            </div>
           ))}
         </Box>
       </Paper>
