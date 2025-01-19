@@ -29,8 +29,10 @@ export default function RidesModal({
           data.map((d) => ({
             pickupName: d.pickup_name,
             destinationName: d.destination_name,
-            pickupTime: d.pickup_time,
-            arrival: d.arrival,
+            pickupTime: isValidDate(d.pickup_time)
+              ? new Date(d.pickup_time)
+              : null,
+            arrival: isValidDate(d.arrival) ? new Date(d.arrival) : null,
             destination: [d.destination_longitude, d.destination_latitude],
             pickup: [d.pickup_longitude, d.pickup_latitude],
             rideShare: d.ride_share,
@@ -43,9 +45,10 @@ export default function RidesModal({
     fetchRides();
   }, [session?.user.id, supabase, open]);
 
-  useEffect(() => {
-    console.log(rides);
-  }, [rides]);
+  const isValidDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return !isNaN(date.getTime());
+  };
 
   return (
     <Modal
@@ -67,8 +70,8 @@ export default function RidesModal({
           width: {
             xs: "90%", // 90% of screen width on extra small screens
             sm: "70%", // 70% of screen width on small screens
-            md: "50%", // 50% of screen width on medium screens
-            lg: "40%", // 40% of screen width on large screens
+            md: "40%", // 50% of screen width on medium screens
+            lg: "30%", // 40% of screen width on large screens
           },
           display: "flex",
           flexDirection: "column",
