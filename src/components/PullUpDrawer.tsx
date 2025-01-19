@@ -69,7 +69,6 @@ const PullUpDrawer: React.FC = () => {
             sx={{
               alignSelf: "center",
               backgroundColor: "primary.main",
-              backgroundColor: "primary.main", // Primary color background
               color: "white", // White icon
               "&:hover": {
                 backgroundColor: "primary.dark", // Darker shade on hover

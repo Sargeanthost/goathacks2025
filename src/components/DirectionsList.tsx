@@ -1,4 +1,5 @@
 import React from "react";
+import { Box, Typography, List, ListItem, ListItemText, Divider } from "@mui/material";
 
 function DirectionsList({ stepsList }: { stepsList: any }) {
     // if (!routeData || !routeData.trips || routeData.trips.length === 0) {
@@ -16,31 +17,37 @@ function DirectionsList({ stepsList }: { stepsList: any }) {
     // instructions.innerHTM
 
     return (
-      <div
-        style={{
-          position: "absolute",
-          top: 80,
-          left: 10,
-          maxHeight: "50%",
-          width: "300px",
-          overflowY: "scroll",
-          backgroundColor: "white",
-          padding: "10px",
-          borderRadius: "8px",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
-        }}
-      >
-              
-        <h3>Directions</h3>
-        <ol style={{ paddingLeft: "20px" }}>
-        {stepsList.map((step: any, index: number) => (
-          <li key={index}>
-            <p>{step.maneuver.instruction}</p>
-            <small>Distance: {(step.distance / 1000).toFixed(2)} km</small>
-          </li>
-        ))}
-      </ol>
-    </div>
+        <Box
+          sx={{
+            position: "absolute",
+            top: 80,
+            left: 10,
+            maxHeight: "50%",
+            width: "300px",
+            overflowY: "scroll",
+            backgroundColor: "white",
+            padding: "10px",
+            borderRadius: "8px",
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+          }}
+        >
+          <Typography variant="h5" gutterBottom>
+            Directions
+          </Typography>
+          <List>
+            {stepsList.map((step: any, index: number) => (
+              <React.Fragment key={index}>
+                <ListItem>
+                  <ListItemText
+                    primary={step.maneuver.instruction}
+                    secondary={`Distance: ${(step.distance / 1000).toFixed(2)} km`}
+                  />
+                </ListItem>
+                {index < stepsList.length - 1 && <Divider />}
+              </React.Fragment>
+            ))}
+          </List>
+        </Box>
     );
   }
   
