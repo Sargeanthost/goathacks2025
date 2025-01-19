@@ -39,6 +39,9 @@ export default function RidesModal({
             pickup: [d.pickup_longitude, d.pickup_latitude],
             rideShare: d.ride_share,
             vehicleType: d.vehicle_type,
+            estimatedPickupTime: isValidDate(d.estimated_pickup_time)
+              ? new Date(d.estimated_pickup_time)
+              : null,
           }))
         );
       }

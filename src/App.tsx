@@ -40,6 +40,12 @@ function App() {
     setIsRidesOpen(true);
   };
 
+  const handleLogoutClicked = async () => {
+    handleMenuClose();
+    await supabase.auth.signOut();
+    window.location.reload();
+  };
+
   const [isRidesOpen, setIsRidesOpen] = useState(false);
 
   const routeData = {
@@ -263,7 +269,7 @@ function App() {
           transformOrigin={{ vertical: "top", horizontal: "left" }}
         >
           <MenuItem onClick={handleRidesClicked}>My Rides</MenuItem>
-          <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
+          <MenuItem onClick={handleLogoutClicked}>Logout</MenuItem>
         </Menu>
 
         <PullUpDrawer />
