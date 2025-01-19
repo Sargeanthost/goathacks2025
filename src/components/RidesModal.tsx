@@ -20,14 +20,21 @@ export default function RidesModal({
   useEffect(() => {
     if (!open) return;
     async function fetchRides() {
-      const { data } = await supabase.from("request").select("*");
+      const { error, data } = await supabase.rpc("get_all_requests");
       setLoading(false);
       if (data) {
+        console.log(data);
+        console.log(error);
         setRides(
           data.map((d) => ({
             pickupName: d.pickup_name,
             destinationName: d.destination_name,
             pickupTime: d.pickup_time,
+            arrival: d.arrival,
+            destination: [d.destination_longitude, d.destination_latitude],
+            pickup: [d.pickup_longitude, d.pickup_latitude],
+            rideShare: d.ride_share,
+            vehicleType: d.vehicle_type,
           }))
         );
       }
@@ -35,6 +42,10 @@ export default function RidesModal({
 
     fetchRides();
   }, [session?.user.id, supabase, open]);
+
+  useEffect(() => {
+    console.log(rides);
+  }, [rides]);
 
   return (
     <Modal

@@ -5,6 +5,8 @@ export interface RideProps {
   pickupName: string;
   destinationName: string;
   pickupTime: Date;
+  pickup: number;
+  destination: number;
 }
 
 export default function Ride({
