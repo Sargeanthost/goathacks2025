@@ -7,9 +7,11 @@ import Loading from "./Loading";
 
 export default function RidesModal({
   open,
+  setOpen,
   onClose,
 }: {
   open: boolean;
+  setOpen: (open: boolean) => void;
   onClose: () => void;
 }) {
   const { supabase } = useSupabase();
