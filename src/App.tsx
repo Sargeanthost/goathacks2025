@@ -195,7 +195,11 @@ function App() {
         </Menu>
 
         <PullUpDrawer />
-        <RidesModal open={isRidesOpen} onClose={() => setIsRidesOpen(false)} />
+        <RidesModal
+          setOpen={setIsRidesOpen}
+          open={isRidesOpen}
+          onClose={() => setIsRidesOpen(false)}
+        />
       </div>
     );
   }
