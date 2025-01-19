@@ -11,11 +11,13 @@ export default function RidesModal({
   setOpen,
   onClose,
   setRouteData,
+  clearRoutes,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   onClose: () => void;
   setRouteData: (routeData: any) => void;
+  clearRouteData: any;
 }) {
   const { supabase } = useSupabase();
   const { session } = useSession();
@@ -61,6 +63,7 @@ export default function RidesModal({
   };
 
   const handleRideClick = async (ride: RideProps) => {
+    clearRoutes();
     try {
       const coordinates = `${ride.pickup[0]},${ride.pickup[1]};${ride.destination[0]},${ride.destination[1]}`;
       const apiUrl = `https://api.mapbox.com/optimized-trips/v1/mapbox/driving/${coordinates}?source=first&destination=last&roundtrip=false&access_token=${mapboxAccessToken}`;

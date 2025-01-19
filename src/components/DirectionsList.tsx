@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Typography,
@@ -14,10 +14,12 @@ function DirectionsList({
   legList,
   setRouteData,
   routeData,
+  clearRoutes,
 }: {
   legList: any;
   setRouteData: any;
   routeData: any;
+  clearRoutes: any;
 }) {
   // if (!routeData || !routeData.trips || routeData.trips.length === 0) {
   //     console.log("NO ROUTE DATA");
@@ -28,8 +30,6 @@ function DirectionsList({
 
   // instructions.innerHTM
 
-  console.log(legList);
-
   const { supabase } = useSupabase();
 
   async function endRoute() {
@@ -39,8 +39,12 @@ function DirectionsList({
       .from("route")
       .update({ is_completed: true })
       .eq("id", routeData.id);
-    setRouteData(null);
+    clearRoutes();
   }
+
+  useEffect(() => {
+    console.log("LEEEGGGG LISSTTTT" + legList);
+  }, [legList]);
 
   return (
     <Box

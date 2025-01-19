@@ -8,10 +8,18 @@ export default function Routes({
   routeData,
   setRouteData,
   legList,
+  clearRoutes,
 }: {
   routeData: any;
   setRouteData: (routeData: null | any) => void;
   legList: any;
+  clearRoutes: any;
 }) {
-  return <DirectionsList legList={legList} />;
+  return (
+    <DirectionsList
+      clearRoutes={clearRoutes}
+      legList={legList}
+      routeData={routeData}
+    />
+  );
 }

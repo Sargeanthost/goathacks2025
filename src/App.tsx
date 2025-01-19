@@ -57,6 +57,28 @@ function App() {
 
   const [routeData, setRouteData] = useState<any | null>(null);
 
+  const waypointMarkersRef = useRef<mapboxgl.Marker[]>([]);
+
+  const clearRoutes = () => {
+    if (mapRef.current) {
+      const map = mapRef.current;
+
+      // Remove route layer and source if they exist
+      if (map.getLayer("route")) {
+        map.removeLayer("route");
+      }
+      if (map.getSource("route")) {
+        map.removeSource("route");
+      }
+
+      // Remove all waypoint markers
+      waypointMarkersRef.current.forEach((marker) => marker.remove());
+      waypointMarkersRef.current = []; // Reset the reference
+
+      console.log("Routes and waypoints cleared from the map.");
+    }
+  };
+
   //update the map whenever routeData changes
   useEffect(() => {
     if (!routeData || !mapRef.current) return;
@@ -103,10 +125,12 @@ function App() {
 
     //waypoints
     routeData.waypoints.forEach((waypoint: any) => {
-      new mapboxgl.Marker()
+      const marker = new mapboxgl.Marker()
         .setLngLat(waypoint.location as [number, number])
         .setPopup(new mapboxgl.Popup().setText(waypoint.name || "Waypoint"))
         .addTo(map);
+
+      waypointMarkersRef.current.push(marker);
     });
   }, [routeData]);
 
@@ -195,13 +219,15 @@ function App() {
       }
       data[0].route.id = data[0].route_id;
       setRouteData(data[0].route);
+      const steps = data.routes[0].legs.map((l) => l.steps);
+      setDirectionsData(steps);
     }, 15000);
 
     return () => {
       clearInterval(updateLocationId);
       clearInterval(updateRouteId);
     };
-  }, [routeData, session, supabase]);
+  }, [session, supabase]);
 
   useEffect(() => {
     console.log(routeData);
@@ -362,8 +388,10 @@ function App() {
           setRouteData={setRouteData}
           routeData={routeData}
           legList={directionsData}
+          clearRoutes={clearRoutes}
         />
         <RidesModal
+          clearRoutes={clearRoutes}
           setOpen={setIsRidesOpen}
           open={isRidesOpen}
           onClose={() => setIsRidesOpen(false)}

@@ -10,10 +10,12 @@ export default function PullUpDrawer({
   routeData,
   setRouteData,
   legList,
+  clearRoutes,
 }: {
   routeData: any;
   setRouteData: (routeData: null | any) => void;
   legList: any;
+  clearRoutes: any;
 }) {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const { session } = useSession();
@@ -96,6 +98,7 @@ export default function PullUpDrawer({
             <RequestForm />
           ) : (
             <Routes
+              clearRoutes={clearRoutes}
               setRouteData={setRouteData}
               routeData={routeData}
               legList={legList}
