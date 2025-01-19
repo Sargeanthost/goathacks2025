@@ -48,79 +48,60 @@ function App() {
 
   const [isRidesOpen, setIsRidesOpen] = useState(false);
 
-  const routeData = {
-    code: "Ok",
-    waypoints: [
-      {
-        distance: 3.0936280216618104,
-        name: "Mason Street",
-        location: [-71.820344, 42.257245],
-        waypoint_index: 0,
-        trips_index: 0,
+  const [routeData, setRouteData] = useState<any | null>(null);
+
+  //update the map whenever routeData changes
+  useEffect(() => {
+    if (!routeData || !mapRef.current) return;
+
+    const map = mapRef.current;
+
+    //route geometry into coords
+    const coordinates = polyline
+      .decode(routeData.trips[0].geometry)
+      .map(([lat, lng]) => [lng, lat]);
+
+    //delete existing route 
+    if (map.getSource("route")) {
+      map.removeLayer("route");
+      map.removeSource("route");
+    }
+
+    // add route
+    map.addSource("route", {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates,
+        },
+        properties: {},
       },
-      {
-        distance: 4.562927757566257,
-        name: "Dewey Street",
-        location: [-71.820477, 42.259984],
-        waypoint_index: 2,
-        trips_index: 0,
+    });
+
+    map.addLayer({
+      id: "route",
+      type: "line",
+      source: "route",
+      layout: {
+        "line-join": "round",
+        "line-cap": "round",
       },
-      {
-        distance: 2.4741999521940397,
-        name: "May Street",
-        location: [-71.818592, 42.255932],
-        waypoint_index: 3,
-        trips_index: 0,
+      paint: {
+        "line-color": "#3b9ddd",
+        "line-width": 4,
       },
-      {
-        distance: 5.637111237354093,
-        name: "Ashland Street",
-        location: [-71.807459, 42.263964],
-        waypoint_index: 1,
-        trips_index: 0,
-      },
-    ],
-    trips: [
-      {
-        geometry:
-          "yj|`GbljuLee@kRcCy\\^g^SAuGg@qErcAt]fNh@aDbGxB~R|HhDwTiBpL}CsA",
-        legs: [
-          {
-            steps: [],
-            summary: "",
-            weight: 360.9,
-            duration: 300.9,
-            distance: 1550.6,
-          },
-          {
-            steps: [],
-            summary: "",
-            weight: 545.6,
-            duration: 397.4,
-            distance: 1871.4,
-          },
-          {
-            steps: [],
-            summary: "",
-            weight: 161.8,
-            duration: 119,
-            distance: 681.5,
-          },
-          {
-            steps: [],
-            summary: "",
-            weight: 51,
-            duration: 36.4,
-            distance: 281.4,
-          },
-        ],
-        weight_name: "routability",
-        weight: 1119.3,
-        duration: 853.6999999999999,
-        distance: 4384.9,
-      },
-    ],
-  };
+    });
+
+    //waypoints
+    routeData.waypoints.forEach((waypoint: any) => {
+      new mapboxgl.Marker()
+        .setLngLat(waypoint.location as [number, number])
+        .setPopup(new mapboxgl.Popup().setText(waypoint.name || "Waypoint"))
+        .addTo(map);
+    });
+  }, [routeData]);
 
   useEffect(() => {
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_PUBLIC_KEY;
@@ -137,7 +118,7 @@ function App() {
         zoom: 10.12,
       });
 
-      //geolocation controls
+      //controls
       const geolocateControl = new mapboxgl.GeolocateControl({
         positionOptions: { enableHighAccuracy: true },
         trackUserLocation: true,
@@ -149,51 +130,10 @@ function App() {
         "bottom-right"
       );
       mapRef.current.addControl(geolocateControl, "bottom-right");
-      // mapRef.current.addControl(geolocateControl);
-      // mapRef.current.addControl(new mapboxgl.NavigationControl());
 
       mapRef.current.on("load", () => {
         setLoading(false);
         geolocateControl.trigger();
-
-        //route
-        const coordinates = polyline
-          .decode(routeData.trips[0].geometry)
-          .map(([lat, lng]) => [lng, lat]);
-        mapRef.current?.addSource("route", {
-          type: "geojson",
-          data: {
-            type: "Feature",
-            geometry: {
-              type: "LineString",
-              coordinates,
-            },
-            properties: {},
-          },
-        });
-
-        // add route
-        mapRef.current?.addLayer({
-          id: "route",
-          type: "line",
-          source: "route",
-          layout: {
-            "line-join": "round",
-            "line-cap": "round",
-          },
-          paint: {
-            "line-color": "#3b9ddd",
-            "line-width": 4,
-          },
-        });
-
-        // add waypoints
-        routeData.waypoints.forEach((waypoint) => {
-          new mapboxgl.Marker()
-            .setLngLat(waypoint.location as [number, number])
-            .setPopup(new mapboxgl.Popup().setText(waypoint.name || "Waypoint"))
-            .addTo(mapRef.current!);
-        });
       });
     };
 
@@ -277,6 +217,7 @@ function App() {
           setOpen={setIsRidesOpen}
           open={isRidesOpen}
           onClose={() => setIsRidesOpen(false)}
+          setRouteData={setRouteData}
         />
       </div>
     );
