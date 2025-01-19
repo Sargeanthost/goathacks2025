@@ -104,7 +104,7 @@ export default function RidesModal({
         sx={{
           padding: "1rem",
           height: "60%",
-          overflow: "hidden",
+          overflowY: "scroll",
           width: {
             xs: "90%", // 90% of screen width on extra small screens
             sm: "70%", // 70% of screen width on small screens
@@ -120,7 +120,6 @@ export default function RidesModal({
         </Typography>
         <Box
           sx={{
-            overflowY: "scroll",
             maxHeight: "100%",
             px: "1rem",
             py: "0.25rem",
